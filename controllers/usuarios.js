@@ -8,7 +8,7 @@ const { generarJWT } = require('../helpers/jwt');
 const getUsuarios = async(req, res) => {
 
     const desde = Number(req.query.desde) || 0;
-    
+
     const [ usuarios, total ] = await Promise.all([
         Usuario
             .find({}, 'nombre email role google img')
@@ -17,6 +17,7 @@ const getUsuarios = async(req, res) => {
 
         Usuario.countDocuments()
     ]);
+
 
     res.json({
         ok: true,
@@ -42,23 +43,26 @@ const crearUsuario = async(req, res = response) => {
         }
 
         const usuario = new Usuario( req.body );
-
-        // Encriptar constraseña
+    
+        // Encriptar contraseña
         const salt = bcrypt.genSaltSync();
         usuario.password = bcrypt.hashSync( password, salt );
-
-        // Guadar usuario
+    
+    
+        // Guardar usuario
         await usuario.save();
 
         // Generar el TOKEN - JWT
         const token = await generarJWT( usuario.id );
+
 
         res.json({
             ok: true,
             usuario,
             token
         });
-        
+
+
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -67,17 +71,20 @@ const crearUsuario = async(req, res = response) => {
         });
     }
 
+
 }
+
 
 const actualizarUsuario = async (req, res = response) => {
 
-    // TODO: Validar token y comprobar is el usuario correcto
+    // TODO: Validar token y comprobar si es el usuario correcto
 
     const uid = req.params.id;
 
+
     try {
-        
-        const usuarioDB = await Usuario.findbyId( uid );
+
+        const usuarioDB = await Usuario.findById( uid );
 
         if ( !usuarioDB ) {
             return res.status(404).json({
@@ -89,7 +96,7 @@ const actualizarUsuario = async (req, res = response) => {
         // Actualizaciones
         const { password, google, email, ...campos } = req.body;
 
-        if ( usuarioDB.email !== req.body.email ) {
+        if ( usuarioDB.email !== email ) {
 
             const existeEmail = await Usuario.findOne({ email });
             if ( existeEmail ) {
@@ -99,8 +106,16 @@ const actualizarUsuario = async (req, res = response) => {
                 });
             }
         }
+        
+        if ( !usuarioDB.google ){
+            campos.email = email;
+        } else if ( usuarioDB.email !== email ) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Usuario de google no pueden cambiar su correo'
+            });
+        }
 
-        campos.email = email;
         const usuarioActualizado = await Usuario.findByIdAndUpdate( uid, campos, { new: true } );
 
         res.json({
@@ -108,6 +123,7 @@ const actualizarUsuario = async (req, res = response) => {
             usuario: usuarioActualizado
         });
 
+        
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -118,13 +134,14 @@ const actualizarUsuario = async (req, res = response) => {
 
 }
 
-const borrarUsuario = async(req, res = response) => {
+
+const borrarUsuario = async(req, res = response ) => {
 
     const uid = req.params.id;
 
     try {
 
-        const usuarioDB = await Usuario.findbyId( uid );
+        const usuarioDB = await Usuario.findById( uid );
 
         if ( !usuarioDB ) {
             return res.status(404).json({
@@ -134,6 +151,7 @@ const borrarUsuario = async(req, res = response) => {
         }
 
         await Usuario.findByIdAndDelete( uid );
+
         
         res.json({
             ok: true,
@@ -145,12 +163,14 @@ const borrarUsuario = async(req, res = response) => {
         console.log(error);
         res.status(500).json({
             ok: false,
-            msg: 'Hable con el administador'
+            msg: 'Hable con el administrador'
         });
 
     }
 
+
 }
+
 
 
 module.exports = {

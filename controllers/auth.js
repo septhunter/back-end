@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const Usuario = require('../models/usuario');
 const { generarJWT } = require('../helpers/jwt');
 const { googleVerify } = require('../helpers/google-verify');
+const { getMenuFrontEnd } = require('../helpers/menu-frontend');
 
 
 const login = async( req, res = response ) => {
@@ -11,7 +12,7 @@ const login = async( req, res = response ) => {
     const { email, password } = req.body;
 
     try {
-
+        
         // Verificar email
         const usuarioDB = await Usuario.findOne({ email });
 
@@ -23,9 +24,8 @@ const login = async( req, res = response ) => {
         }
 
         // Verificar contraseña
-        const validPassowrd = bcrypt.compareSync( password, usuarioDB.password );
-
-        if ( !validPassowrd ) {
+        const validPassword = bcrypt.compareSync( password, usuarioDB.password );
+        if ( !validPassword ) {
             return res.status(400).json({
                 ok: false,
                 msg: 'Contraseña no válida'
@@ -35,10 +35,11 @@ const login = async( req, res = response ) => {
         // Generar el TOKEN - JWT
         const token = await generarJWT( usuarioDB.id );
 
+
         res.json({
             ok: true,
-            usuario,
-            token
+            token,
+            menu: getMenuFrontEnd( usuarioDB.role )
         });
 
     } catch (error) {
@@ -49,11 +50,13 @@ const login = async( req, res = response ) => {
         })
     }
 
+
 }
+
 
 const googleSignIn = async( req, res = response ) => {
 
-    const  googleToken = req.body.token;
+    const googleToken = req.body.token;
 
     try {
 
@@ -67,10 +70,10 @@ const googleSignIn = async( req, res = response ) => {
             usuario = new Usuario({
                 nombre: name,
                 email,
-                passowrd: '@@@',
+                password: '@@@',
                 img: picture,
                 google: true
-            })
+            });
         } else {
             // existe usuario
             usuario = usuarioDB;
@@ -85,20 +88,20 @@ const googleSignIn = async( req, res = response ) => {
         
         res.json({
             ok: true,
-            token
+            token,
+            menu: getMenuFrontEnd( usuario.role )
         });
 
     } catch (error) {
-
+        
         res.status(401).json({
             ok: false,
-            msg: 'Token no es correcto'
+            msg: 'Token no es correcto',
         });
-
     }
 
-
 }
+
 
 const renewToken = async(req, res = response) => {
 
@@ -107,12 +110,20 @@ const renewToken = async(req, res = response) => {
     // Generar el TOKEN - JWT
     const token = await generarJWT( uid );
 
+    // Obtener el usuario por UID
+    const usuario = await Usuario.findById( uid );
+
+
     res.json({
         ok: true,
-        token
+        token,
+        usuario,
+        menu: getMenuFrontEnd( usuario.role )
     });
 
 }
+
+
 
 
 module.exports = {

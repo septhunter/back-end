@@ -12,31 +12,31 @@ const fileUpload = ( req, res = response ) => {
     const id   = req.params.id;
 
     // Validar tipo
-    const tiposValids = ['hospitales','medicos','usuarios'];
-    if ( !tiposValids.includes(tipo) ) {
+    const tiposValidos = ['hospitales','medicos','usuarios'];
+    if ( !tiposValidos.includes(tipo) ){
         return res.status(400).json({
             ok: false,
-            msg: 'No es médico, usuario u hospital (tipo)'
+            msg: 'No es un médico, usuario u hospital (tipo)'
         });
     }
 
-    // Valida que exista un archivo
+    // Validar que exista un archivo
     if (!req.files || Object.keys(req.files).length === 0) {
-        return res.status(400).send({
+        return res.status(400).json({
             ok: false,
-            msg: 'No hay ningún acrchivo'
+            msg: 'No hay ningún archivo'
         });
     }
 
     // Procesar la imagen...
     const file = req.files.imagen;
 
-    const nombreCortado = file.name.split('.'); // wolvrine.1.3.jpg
+    const nombreCortado = file.name.split('.'); // wolverine.1.3.jpg
     const extensionArchivo = nombreCortado[ nombreCortado.length - 1 ];
-
+    
     // Validar extension
-    const extensionValidas = ['png','jpg','jpeg','gif'];
-    if ( !extensionValidas.includes( extensionArchivo ) ) {
+    const extensionesValidas = ['png','jpg','jpeg','gif'];
+    if ( !extensionesValidas.includes( extensionArchivo ) ) {
         return res.status(400).json({
             ok: false,
             msg: 'No es una extensión permitida'
@@ -50,9 +50,9 @@ const fileUpload = ( req, res = response ) => {
     const path = `./uploads/${ tipo }/${ nombreArchivo }`;
 
     // Mover la imagen
-    file.mv( path, (err) => {
-        if (err) {
-            console.log(err);
+    file.mv( path , (err) => {
+        if (err){
+            console.log(err)
             return res.status(500).json({
                 ok: false,
                 msg: 'Error al mover la imagen'
@@ -71,6 +71,7 @@ const fileUpload = ( req, res = response ) => {
 
 }
 
+
 const retornaImagen = ( req, res = response ) => {
 
     const tipo = req.params.tipo;
@@ -80,10 +81,10 @@ const retornaImagen = ( req, res = response ) => {
 
     // imagen por defecto
     if ( fs.existsSync( pathImg ) ) {
-        res.existsSync( pathImg )
+        res.sendFile( pathImg );
     } else {
-        const pathImg = path.join( __dirname, `../uploads/imagen-no-disponible.png` );
-        res.existsSync( pathImg )
+        const pathImg = path.join( __dirname, `../uploads/no-img.jpg` );
+        res.sendFile( pathImg );
     }
 
 }

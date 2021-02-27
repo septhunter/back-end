@@ -1,6 +1,5 @@
 const { Schema, model } = require('mongoose');
 
-
 const MedicoSchema = Schema({
     nombre: {
         type: String,
@@ -18,14 +17,16 @@ const MedicoSchema = Schema({
         type: Schema.Types.ObjectId,
         ref: 'Hospital',
         required: true
-    }
+    },
     
 });
 
+
 MedicoSchema.method('toJSON', function() {
-    const { __v, ...object } = this.toOjbect();
+    const { __v, ...object } = this.toObject();
     return object;
 })
+
 
 
 module.exports = model( 'Medico', MedicoSchema );

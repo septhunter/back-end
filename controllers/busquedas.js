@@ -5,7 +5,7 @@ const Medico = require('../models/medico');
 const Hospital = require('../models/hospital');
 
 
-const getTodo = async(req, res = response) => {
+const getTodo = async(req, res = response ) => {
 
     const busqueda = req.params.busqueda;
     const regex = new RegExp( busqueda, 'i' );
@@ -25,8 +25,7 @@ const getTodo = async(req, res = response) => {
 
 }
 
-
-const getDocumentosColeccion = async(req, res = response) => {
+const getDocumentosColeccion = async(req, res = response ) => {
 
     const tabla    = req.params.tabla;
     const busqueda = req.params.busqueda;
@@ -37,19 +36,20 @@ const getDocumentosColeccion = async(req, res = response) => {
     switch ( tabla ) {
         case 'medicos':
             data = await Medico.find({ nombre: regex })
-                                 .populate('usuario', 'nombre img')
-                                 .populate('hospital', 'nombre img');
-            break;
+                                .populate('usuario', 'nombre img')
+                                .populate('hospital', 'nombre img');
+        break;
 
         case 'hospitales':
             data = await Hospital.find({ nombre: regex })
-                                   .populate('usuario', 'nombre img')
-            break;
+                                    .populate('usuario', 'nombre img');
+        break;
 
         case 'usuarios':
             data = await Usuario.find({ nombre: regex });
-            break;
-        
+            
+        break;
+    
         default:
             return res.status(400).json({
                 ok: false,
@@ -69,3 +69,4 @@ module.exports = {
     getTodo,
     getDocumentosColeccion
 }
+
